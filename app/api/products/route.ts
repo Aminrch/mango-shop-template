@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase/client"
-import type { Product } from "@/types/product"
-
+import type { Product } from "../../src/types/product"
 export async function GET() {
   try {
     const { data, error } = await supabase
