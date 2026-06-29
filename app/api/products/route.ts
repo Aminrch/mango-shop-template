@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase/client"
+import type { Product } from "@/types/product"
 
 export async function GET() {
   try {
@@ -15,8 +16,20 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json(data ?? [])
-  } catch (error) {
+    // ✅ sanitize + type safety
+    const safeData: Product[] = (data ?? [])
+      .filter((p) => p.slug && p.id && p.title && p.price && p.image)
+      .map((p) => ({
+        id: p.id,
+        title: p.title,
+        price: p.price,
+        image: p.image,
+        slug: p.slug,
+        created_at: p.created_at,
+      }))
+
+    return NextResponse.json(safeData)
+  } catch {
     return NextResponse.json(
       { error: "Something went wrong." },
       { status: 500 }
