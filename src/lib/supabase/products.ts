@@ -1,52 +1,37 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import type { Product } from "@/lib/schemas/product"
+import { supabase } from "@/lib/supabase/client"
+import { safeProducts, safeProduct } from "@/lib/safe/product"
 
-type CartItem = Product & {
-  qty: number
+export async function getProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) return []
+
+  return safeProducts(data ?? [])
 }
 
-type CartStore = {
-  items: CartItem[]
-  addItem: (item: Product) => void
-  removeItem: (id: string) => void
-  clear: () => void
+export async function getProductBySlug(slug: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+
+  if (error) return null
+
+  return safeProduct(data)
 }
 
-export const useCart = create<CartStore>()(
-  persist(
-    (set, get) => ({
-      items: [],
+export async function getRecommendedProducts(currentSlug: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .neq("slug", currentSlug)
+    .limit(4)
 
-      addItem: (item) => {
-        // 🔥 HARD GUARANTEE
-        if (!item || !item.slug) return
+  if (error) return []
 
-        const existing = get().items.find((i) => i.id === item.id)
-
-        if (existing) {
-          set({
-            items: get().items.map((i) =>
-              i.id === item.id ? { ...i, qty: i.qty + 1 } : i
-            ),
-          })
-          return
-        }
-
-        set((state) => ({
-          items: [...state.items, { ...item, qty: 1 }],
-        }))
-      },
-
-      removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
-        })),
-
-      clear: () => set({ items: [] }),
-    }),
-    {
-      name: "cart-storage",
-    }
-  )
-)
+  return safeProducts(data ?? [])
+}
