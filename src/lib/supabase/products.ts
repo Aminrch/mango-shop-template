@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase/client"
-import { safeProducts, safeProduct } from "@/lib/safe/product"
 
 export async function getProducts() {
   const { data, error } = await supabase
@@ -7,9 +6,12 @@ export async function getProducts() {
     .select("*")
     .order("created_at", { ascending: false })
 
-  if (error) return []
+  if (error) {
+    console.error("getProducts error:", error.message)
+    return []
+  }
 
-  return safeProducts(data ?? [])
+  return data ?? []
 }
 
 export async function getProductBySlug(slug: string) {
@@ -19,9 +21,9 @@ export async function getProductBySlug(slug: string) {
     .eq("slug", slug)
     .single()
 
-  if (error) return null
+  if (error || !data) return null
 
-  return safeProduct(data)
+  return data
 }
 
 export async function getRecommendedProducts(currentSlug: string) {
@@ -33,5 +35,5 @@ export async function getRecommendedProducts(currentSlug: string) {
 
   if (error) return []
 
-  return safeProducts(data ?? [])
+  return data ?? []
 }
