@@ -8,7 +8,7 @@ export type WishlistItem = {
   title: string
   price: number
   image: string
-  slug?: string
+  slug: string
 }
 
 type WishlistStore = {
@@ -28,8 +28,14 @@ export const useWishlist = create<WishlistStore>()(
       addItem: (item) =>
         set((state) => {
           const exists = state.items.some((i) => i.id === item.id)
-          if (exists) return state
-          return { items: [...state.items, item] }
+
+          if (exists) {
+            return state
+          }
+
+          return {
+            items: [...state.items, item],
+          }
         }),
 
       removeItem: (id) =>
@@ -52,7 +58,9 @@ export const useWishlist = create<WishlistStore>()(
           }
         }),
 
-      isInWishlist: (id) => get().items.some((item) => item.id === id),
+      isInWishlist: (id) => {
+        return get().items.some((item) => item.id === id)
+      },
 
       clearWishlist: () => set({ items: [] }),
     }),
