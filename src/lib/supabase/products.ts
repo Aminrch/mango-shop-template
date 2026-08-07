@@ -15,3 +15,19 @@ export async function getProducts() {
 
   return data ?? []
 }
+
+
+export async function getProductBySlug(slug: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+
+  if (error) {
+    console.error("getProductBySlug error:", error.message)
+    return null
+  }
+
+  return data
+}
